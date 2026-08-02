@@ -1,0 +1,180 @@
+<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
+<title>لوحة الإدارة — دفتري</title>
+<link rel="manifest" href="manifest.json">
+<meta name="theme-color" content="#0F3D3E">
+<link rel="apple-touch-icon" href="icons/icon-180.png">
+<link rel="icon" href="icons/favicon-32.png">
+<link rel="preconnect" href="https://www.gstatic.com" crossorigin>
+<link rel="preconnect" href="https://firestore.googleapis.com" crossorigin>
+<link rel="preconnect" href="https://identitytoolkit.googleapis.com" crossorigin>
+<link rel="stylesheet" href="css/style.css">
+</head>
+<body>
+
+<div class="sidebar-overlay" id="sidebarOverlay"></div>
+
+<div class="app-shell">
+  <aside class="sidebar" id="sidebar">
+    <button class="sidebar-close" id="sidebarCloseBtn" aria-label="إغلاق القائمة">✕</button>
+    <div class="brand">
+      <img src="icons/logo.svg" width="36" height="36" alt="">
+      <div class="brand-text">
+        <strong>دفتري</strong>
+        <span>لوحة الإدارة</span>
+      </div>
+    </div>
+    <div class="side-nav-label">القائمة</div>
+    <nav class="side-nav">
+      <a href="#" class="side-link active" data-view="pending"><span class="ic">🕓</span> طلبات بانتظار الموافقة <span id="pendingCountBadge" class="side-badge"></span></a>
+      <a href="#" class="side-link" data-view="active"><span class="ic">✅</span> الحسابات المفعّلة</a>
+      <a href="#" class="side-link" data-view="all"><span class="ic">🏬</span> جميع المحلات</a>
+      <a href="index.html" class="side-link"><span class="ic">🌐</span> الصفحة الرئيسية</a>
+    </nav>
+    <div class="side-foot">
+      <div class="user-chip">
+        <div class="user-avatar">A</div>
+        <div class="user-meta">
+          <strong>الإدارة</strong>
+          <span>مشرف المنصة</span>
+        </div>
+      </div>
+      <button class="btn btn-danger btn-sm btn-block" style="margin-top:12px;" id="logoutBtn">تسجيل الخروج</button>
+    </div>
+  </aside>
+
+  <div class="main-area" id="mainArea">
+    <div class="topbar">
+      <div style="display:flex; align-items:center; gap:12px;">
+        <button class="hamburger" id="hamburgerBtn">☰</button>
+        <h1 id="topbarTitle">طلبات بانتظار الموافقة</h1>
+      </div>
+    </div>
+
+    <div class="page-pad">
+
+      <div class="stats-grid">
+        <div class="stat-card gold"><div class="stat-icon">🕓</div><div class="stat-label">طلبات معلّقة</div><div class="stat-value" id="statPending">0</div></div>
+        <div class="stat-card green"><div class="stat-icon">✅</div><div class="stat-label">حسابات مفعّلة</div><div class="stat-value" id="statActive">0</div></div>
+        <div class="stat-card red"><div class="stat-icon">⛔</div><div class="stat-label">حسابات منتهية</div><div class="stat-value" id="statExpired">0</div></div>
+        <div class="stat-card"><div class="stat-icon">🏬</div><div class="stat-label">إجمالي المحلات</div><div class="stat-value" id="statTotal">0</div></div>
+      </div>
+
+
+      <div id="view-pending">
+        <div class="toolbar">
+          <div class="search-box">
+            <span class="input-icon">🔍</span>
+            <input class="input input-group" id="searchPendingInput" placeholder="ابحث باسم المحل أو صاحبه أو البريد...">
+          </div>
+        </div>
+        <div id="pendingList"></div>
+        <div id="emptyPending" class="empty-state" style="display:none;">
+          <div class="ic">🎉</div>
+          <h3>لا توجد طلبات معلّقة</h3>
+          <p>جميع الطلبات تمت مراجعتها</p>
+        </div>
+      </div>
+
+
+      <div id="view-active" style="display:none;">
+        <div class="toolbar">
+          <div class="search-box">
+            <span class="input-icon">🔍</span>
+            <input class="input input-group" id="searchActiveInput" placeholder="ابحث باسم المحل أو البريد...">
+          </div>
+        </div>
+        <div class="table-card">
+          <table>
+            <thead><tr><th>المحل</th><th class="col-email">البريد الإلكتروني</th><th>ينتهي في</th><th>المتبقي</th><th class="col-actions"></th></tr></thead>
+            <tbody id="activeTbody"></tbody>
+          </table>
+          <div id="emptyActive" class="empty-state" style="display:none;">
+            <div class="ic">🏬</div><h3>لا توجد حسابات مفعّلة حالياً</h3>
+          </div>
+        </div>
+      </div>
+
+
+      <div id="view-all" style="display:none;">
+        <div class="toolbar">
+          <div class="search-box">
+            <span class="input-icon">🔍</span>
+            <input class="input input-group" id="searchAllInput" placeholder="ابحث باسم المحل أو البريد...">
+          </div>
+        </div>
+        <div class="table-card">
+          <table>
+            <thead><tr><th>المحل</th><th class="col-email">البريد الإلكتروني</th><th class="col-status">الحالة</th><th class="col-actions"></th></tr></thead>
+            <tbody id="allTbody"></tbody>
+          </table>
+        </div>
+      </div>
+
+    </div>
+  </div>
+</div>
+
+<div class="modal-overlay" id="approveModal">
+  <div class="modal">
+    <div class="modal-head">
+      <h3>الموافقة على تفعيل الحساب</h3>
+      <button class="modal-close" data-close-modal>✕</button>
+    </div>
+    <p style="font-size:.9rem; color:#5d6b66; margin-bottom:18px;" id="approveShopLabel"></p>
+    <form id="approveForm" novalidate>
+      <input type="hidden" id="approveShopId">
+      <div class="field">
+        <label for="durationDays">مدة التفعيل</label>
+        <select class="input" id="durationDays">
+          <option value="7">أسبوع (7 أيام)</option>
+          <option value="30" selected>شهر (30 يوم)</option>
+          <option value="90">3 أشهر (90 يوم)</option>
+          <option value="180">6 أشهر (180 يوم)</option>
+          <option value="365">سنة كاملة (365 يوم)</option>
+        </select>
+      </div>
+      <div class="modal-actions">
+        <button type="submit" class="btn btn-primary btn-block">تفعيل الحساب</button>
+      </div>
+    </form>
+  </div>
+</div>
+
+<div class="modal-overlay" id="extendModal">
+  <div class="modal">
+    <div class="modal-head">
+      <h3>تمديد مدة التفعيل</h3>
+      <button class="modal-close" data-close-modal>✕</button>
+    </div>
+    <form id="extendForm" novalidate>
+      <input type="hidden" id="extendShopId">
+      <div class="field">
+        <label for="extendDays">مدة إضافية</label>
+        <select class="input" id="extendDays">
+          <option value="7">أسبوع (7 أيام)</option>
+          <option value="30" selected>شهر (30 يوم)</option>
+          <option value="90">3 أشهر (90 يوم)</option>
+          <option value="365">سنة كاملة (365 يوم)</option>
+        </select>
+      </div>
+      <div class="modal-actions">
+        <button type="submit" class="btn btn-primary btn-block">تمديد</button>
+      </div>
+    </form>
+  </div>
+</div>
+
+<script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-app-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-auth-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore-compat.js"></script>
+<script src="js/firebase-config.js"></script>
+<script src="js/db.js"></script>
+<script src="js/ui.js"></script>
+<script src="js/admin.js"></script>
+<script src="js/pwa.js"></script>
+</body>
+</html>
